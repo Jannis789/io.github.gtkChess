@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=GtkChess
+Exec=io.github.gtkChess
+Icon=io.github.gtkChess
+Terminal=false
+Type=Application
+Categories=GTK;
+StartupNotify=true
