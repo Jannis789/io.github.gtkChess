@@ -1,0 +1,94 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $Gjs_Window: Adw.ApplicationWindow {
+    default-width: 750;
+    default-height: 545;
+    width-request: 500;
+    height-request: 500;
+
+    Adw.Breakpoint {
+        condition("max-width: 650sp")
+
+        setters {
+            split_view.collapsed: true;
+            show_sidebar_button.visible: true;
+        }
+    }
+    content: Adw.ToastOverlay toastOverlay {
+        child: Adw.ToolbarView {
+
+            [top]
+            Adw.HeaderBar {
+
+                [end]
+                ToggleButton show_sidebar_button {
+                    icon-name: "sidebar-show-symbolic";
+                    tooltip-text: _("Show History");
+                    active: bind split_view.show-sidebar;
+                    visible: false;
+                }
+                [end]
+                MenuButton {
+                    icon-name: 'open-menu-symbolic';
+                    menu-model: primary_menu;
+                    primary: true;
+                    tooltip-text: _('Main Menu');
+                }
+
+            }
+
+            content: Adw.OverlaySplitView split_view {
+                sidebar-position: end;
+                show-sidebar: bind show_sidebar_button.active;
+                margin-end: 10;
+                margin-start: 10;
+                margin-bottom: 10;
+
+                styles["card"]
+
+                sidebar: Gtk.Box {
+
+                };
+
+                content: Gtk.Box {
+                    Gtk.AspectFrame {
+                        margin-end: 15;
+                        margin-top: 15;
+                        margin-start: 15;
+                        margin-bottom: 15;
+                        obey-child: false;
+                        xalign: 0.5;
+                        yalign: 0.5;
+                        ratio: 1;
+
+                        child: Gtk.Box {
+                            vexpand: true;
+                            hexpand: true;
+                            styles["card"]
+                        };
+                    }
+                };
+            };
+        };
+    };
+}
+
+menu primary_menu {
+    section {
+        item {
+            label: _('_Preferences');
+            action: 'app.preferences';
+        }
+
+        item {
+            label: _('_Keyboard Shortcuts');
+            action: 'win.show-help-overlay';
+        }
+
+        item {
+            label: _('_About GtkChess');
+            action: 'app.about';
+        }
+    }
+}

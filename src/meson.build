@@ -24,6 +24,7 @@ src_res = gnome.compile_resources(
   gresource_bundle: true,
   install: true,
   install_dir: pkgdatadir,
+  dependencies: blueprints,
 )
 
 bin_conf = configuration_data()
