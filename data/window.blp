@@ -4,8 +4,14 @@ using Adw 1;
 template $Gjs_Window: Adw.ApplicationWindow {
     default-width: 700;
     default-height: 500;
-    width-request: 400;
-    height-request: 420;
+    width-request: 500;
+    height-request: 550;
+	  Adw.Breakpoint {
+		    condition("max-width: 650sp") setters {
+			      sideBar.visible: false;
+			      aspectFrame.ratio: 1;
+		    }
+	  }
 
     content: Adw.ToastOverlay {
         child: Adw.ToolbarView {
@@ -18,7 +24,7 @@ template $Gjs_Window: Adw.ApplicationWindow {
                 }
             }
 
-            AspectFrame {
+            AspectFrame aspectFrame {
                 xalign: 0.5;
                 yalign: 0.5;
                 ratio: 1.5;
@@ -52,7 +58,7 @@ template $Gjs_Window: Adw.ApplicationWindow {
                         }
                         styles ["card"]
                     }
-                    Box {
+                    Box sideBar {
                         vexpand: true;
                         hexpand: true;
                         margin-start: 5;
