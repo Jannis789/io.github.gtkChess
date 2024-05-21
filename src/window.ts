@@ -5,14 +5,14 @@ import GObject from 'gi://GObject';
 import Gtk from 'gi://Gtk?version=4.0';
 
 export class Window extends Adw.ApplicationWindow {
-    private _toastOverlay!: Adw.ToastOverlay;
+    private _chessWidget!: Gtk.Box;
 
     static {
         GObject.registerClass(
             {
                 Template:
                     'resource:///io/github/gtkChess/window.ui',
-                InternalChildren: ['toastOverlay'],
+                InternalChildren: ['chessWidget'],
             },
             this
         );
@@ -27,6 +27,9 @@ export class Window extends Adw.ApplicationWindow {
 
     constructor(params?: Partial<Adw.ApplicationWindow.ConstructorProperties>) {
         super(params);
+
+
+
     }
 }
 
