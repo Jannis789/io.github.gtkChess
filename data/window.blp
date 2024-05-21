@@ -2,111 +2,89 @@ using Gtk 4.0;
 using Adw 1;
 
 template $Gjs_Window: Adw.ApplicationWindow {
-	default-width: 700;
-	default-height: 500;
-	width-request: 400;
-	height-request: 420;
+    default-width: 700;
+    default-height: 500;
+    width-request: 400;
+    height-request: 420;
 
-	Adw.Breakpoint {
-		condition("max-width: 650sp") setters {
-			sideBar.visible: false;
-			aspectFrame.ratio: 1;
-		}
-	}
+    content: Adw.ToastOverlay {
+        child: Adw.ToolbarView {
+            [top] Adw.HeaderBar {
+                [end] Gtk.MenuButton {
+                    icon-name: 'open-menu-symbolic';
+                    menu-model: primary_menu;
+                    primary: true;
+                    tooltip-text: _('Main Menu');
+                }
+            }
 
-	content: Adw.ToastOverlay toastOverlay {
-		child: Adw.ToolbarView {
+            AspectFrame {
+                xalign: 0.5;
+                yalign: 0.5;
+                ratio: 1.5;
+                obey-child: false;
+                margin-end: 10;
+                margin-bottom: 10;
+                margin-start: 10;
+                Gtk.Grid {
+                    row-homogeneous: true;
+                    column-homogeneous: true;
 
-			[top] Adw.HeaderBar {
+                    Box {
+                        vexpand: true;
+                        hexpand: true;
+                        margin-end: 5;
 
-				[end] MenuButton {
-					icon-name: 'open-menu-symbolic';
-					menu-model: primary_menu;
-					primary: true;
-					tooltip-text: _('Main Menu');
-				}
-
-			}
-
-			Gtk.AspectFrame aspectFrame {
-				margin-end: 15;
-				margin-start: 15;
-				margin-bottom: 15;
-				xalign: 0.5;
-				yalign: 0.5;
-				ratio: 1.4;
-				obey-child: false;
-
-				Grid {
-					Box {
-						vexpand: true;
-						hexpand: true;
-						margin-end: 5;
-
-						AspectFrame {
-							xalign: 1;
-							yalign: 1;
-							ratio: 1;
-							obey-child: false;
-
-							Box chessWidget {
-								vexpand: true;
-								hexpand: true;
-								margin-end: 10;
-								margin-start: 10;
-								margin-bottom: 10;
-								margin-top: 10;
-								styles ["card"]
-							}
-						}
-
-						layout {
-							column: 0;
-							row: 0;
-							column-span: 10;
-							row-span: 10;
-						}
-
-						styles ["card"]
-					}
-
-					Box sideBar {
-						vexpand: true;
-						hexpand: true;
-						margin-start: 5;
-
-						layout {
-							column: 10;
-							row: 0;
-							column-span: 4;
-							row-span: 10;
-						}
-
-						styles ["card"]
-					}
-				}
-			}
-
-		};
-	};
-
+                        Grid gridFrame {
+                            vexpand: true;
+                            hexpand: true;
+                            margin-end: 10;
+                            margin-top: 10;
+                            margin-bottom: 10;
+                            margin-start: 10;
+                            styles ["card"]
+                        }
+                        layout {
+                            column: 0;
+                            row: 0;
+                            column-span: 2;
+                            row-span: 2;
+                        }
+                        styles ["card"]
+                    }
+                    Box {
+                        vexpand: true;
+                        hexpand: true;
+                        margin-start: 5;
+                        layout {
+                            column: 2;
+                            row: 0;
+                            column-span: 1;
+                            row-span: 2;
+                        }
+                        styles ["card"]
+                    }
+                }
+            }
+        };
+    };
 }
 
 menu primary_menu {
-	section {
-		item {
-			label: _('_Preferences');
-			action: 'app.preferences';
-		}
+    section {
+        item {
+            label: _('_Preferences');
+            action: 'app.preferences';
+        }
 
-		item {
-			label: _('_Keyboard Shortcuts');
-			action: 'win.show-help-overlay';
-		}
+        item {
+            label: _('_Keyboard Shortcuts');
+            action: 'win.show-help-overlay';
+        }
 
-		item {
-			label: _('_About GtkChess');
-			action: 'app.about';
-		}
-	}
+        item {
+            label: _('_About GtkChess');
+            action: 'app.about';
+        }
+    }
 }

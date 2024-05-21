@@ -1,0 +1,93 @@
+/*
+window_bg_color          # The main background color used on GtkWindow
+window_fg_color          # The main foreground text color
+view_bg_color            # A secondary background color used in icon views, text fields, etc
+view_fg_color            # Secondary foreground text color
+accent_bg_color          # Color to indicate that a widget is important, interactive, or currently active
+accent_fg_color          # Color for text over widgets using accent_bg_color
+accent_color             # Mostly used for text labels. Can be the same as accent_bg_color
+headerbar_bg_color       # The headerbar background
+headerbar_fg_color       # The headerbar foreground text color
+headerbar_backdrop_color # The headerbar backdrop state background
+headerbar_border_color   # Currently not used in adw-gtk3
+headerbar_shade_color    # The bottom border of the headerbar
+card_bg_color            # The background color of lists
+card_fg_color            # The text color on libhandy lists
+card_shade_color         # List borders
+popover_bg_color         # The background color of popovers and menus
+popover_fg_color         # The text color on popovers
+dialog_bg_color          # The background color of message dialogs
+dialog_fg_color          # The foreground color of message dialogs
+sidebar_bg_color         # Sidebar background color
+sidebar_fg_color         # Sidebar foreground color
+sidebar_backdrop_color   # Sidebar backdrop background color
+sidebar_shade_color      # Sidebar shade color
+
+warning_bg_color         # Background for widgets and elements that show a warning
+warning_fg_color         # Foreground for widgets and elements that show a warning
+warning_color            # Warning text label
+error_bg_color           # Background for widgets and elements that show an error
+error_fg_color           # Foreground for widgets and elements that show an error
+error_color              # Error text label
+success_bg_color         # Background for widgets and elements that show a successful action
+success_fg_color         # Foreground for widgets and elements that show a successful action
+success_color            # Success text label
+destructive_bg_color     # The destructive color indicates a dangerous action, such as deleting a file
+destructive_fg_color     # Destructive foreground color
+destructive_color        # Destructive text label
+
+# Custom colors (GTK3 only)
+panel_bg_color           # Background for XFCE4 panel
+panel_fg_color           # Foreground for XFCE4 panel
+incognito_bg_color       # adw-gtk3 only: For epiphany (Gnome web gtk3 version) incognito headerbar
+*/
+.dark_tile {
+  background-color: #274c59;
+  transition: background-color 0.5s ease;
+}
+
+.light_tile {
+  background-color: #b3825e;
+  transition: box-shadow 0.5s ease;
+}
+
+.dark_tile:hover, .light_tile:hover {
+  box-shadow: inset 1000px 200px 5px 0px rgba(90, 100, 160, 0.3);
+}
+
+
+.no_corner {
+  border-radius: 0;
+}
+
+.corner_tl {
+  border-top-left-radius: 10%;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.corner_tr {
+  border-top-right-radius: 10%;
+  border-top-left-radius: 0;
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.corner_bl {
+  border-bottom-left-radius: 10%;
+  border-bottom-right-radius: 0;
+  border-top-right-radius: 0;
+  border-top-left-radius: 0;
+}
+
+.corner_br {
+  border-bottom-right-radius: 10%;
+  border-bottom-left-radius: 0;
+  border-top-right-radius: 0;
+  border-top-left-radius: 0;
+}
+.sideBar {
+  background-color: @card_shade_color;
+  border-radius: 10px;
+}

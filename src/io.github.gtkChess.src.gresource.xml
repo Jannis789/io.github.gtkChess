@@ -3,5 +3,8 @@
   <gresource prefix="/io/github/gtkChess/js">
     <file>main.js</file>
     <file>window.js</file>
+    <file>ChessGame.js</file>
+    <file>GameBoard.js</file>
+    <file>Pieces.js</file>
   </gresource>
 </gresources>

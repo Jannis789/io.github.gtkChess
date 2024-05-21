@@ -3,16 +3,18 @@ import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import Gtk from 'gi://Gtk?version=4.0';
+import ChessGame from './ChessGame.js';
 
 export class Window extends Adw.ApplicationWindow {
-    private _chessWidget!: Gtk.Box;
+    private _gridFrame!: Gtk.Grid;
+
 
     static {
         GObject.registerClass(
             {
                 Template:
                     'resource:///io/github/gtkChess/window.ui',
-                InternalChildren: ['chessWidget'],
+                InternalChildren: ['gridFrame'],
             },
             this
         );
@@ -27,9 +29,7 @@ export class Window extends Adw.ApplicationWindow {
 
     constructor(params?: Partial<Adw.ApplicationWindow.ConstructorProperties>) {
         super(params);
-
-
-
+        new ChessGame(this._gridFrame);
     }
 }
 
