@@ -39,21 +39,7 @@ destructive_color        # Destructive text label
 # Custom colors (GTK3 only)
 panel_bg_color           # Background for XFCE4 panel
 panel_fg_color           # Foreground for XFCE4 panel
-incognito_bg_color       # adw-gtk3 only: For epiphany (Gnome web gtk3 version) incognito headerbar
-*/
-.dark_tile {
-  background-color: #274c59;
-  transition: background-color 0.5s ease;
-}
-
-.light_tile {
-  background-color: #b3825e;
-  transition: box-shadow 0.5s ease;
-}
-
-.dark_tile:hover, .light_tile:hover {
-  box-shadow: inset 1000px 200px 5px 0px rgba(90, 100, 160, 0.3);
-}
+incognito_bg_color       # adw-gtk3 only: For epiphany (Gnome web gtk3 version) incognito headerbar */
 
 
 .no_corner {
@@ -87,7 +73,22 @@ incognito_bg_color       # adw-gtk3 only: For epiphany (Gnome web gtk3 version) 
   border-top-right-radius: 0;
   border-top-left-radius: 0;
 }
-.sideBar {
-  background-color: @card_shade_color;
-  border-radius: 10px;
+
+.outerBox {
+  background-color: black;
+  border-radius: 2%;
+}
+
+.dark_tile {
+  background-color: #3a3954;
+  transition: background-color 0.5s ease;
+}
+
+.light_tile {
+  background-color: #d1d1d1;
+  transition: box-shadow 0.5s ease;
+}
+
+.dark_tile:hover, .light_tile:hover {
+  box-shadow: inset 1000px 200px 5px 0px rgba(90, 100, 160, 0.3);
 }

@@ -1,10 +1,10 @@
 import Gtk from 'gi://Gtk?version=4.0';
-import Pieces from './Pieces.js'
+import TileSet from './Pieces.js'
 
 export default class GameBoard {
     private gameArea!: Gtk.Grid;
     private cssProvider!: Gtk.CssProvider;
-    private pieces!: Pieces;
+    private tileSet!: TileSet;
     private numRows: number = 8;
     private numCols: number = 8;
 
@@ -12,7 +12,7 @@ export default class GameBoard {
         this.gameArea = area;
         this.cssProvider = new Gtk.CssProvider();
         this.addCssResource("/io/github/gtkChess/styles.css");
-        this.pieces = new Pieces();
+        this.tileSet = new TileSet();
         this._initBoard();
     }
     private addCssResource(fileName: string) {
@@ -34,7 +34,7 @@ export default class GameBoard {
 
                 this.gameArea.attach(button, col, row, 1, 1);
 
-                this.pieces.setObject(button, col, row);
+                this.tileSet.setObject(button, col, row);
             }
         }
     }
