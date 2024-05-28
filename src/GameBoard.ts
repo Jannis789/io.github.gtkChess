@@ -1,5 +1,5 @@
 import Gtk from 'gi://Gtk?version=4.0';
-import TileSet from './Pieces.js'
+import TileSet from './TileSet.js'
 
 export default class GameBoard {
     private gameArea!: Gtk.Grid;
@@ -20,6 +20,7 @@ export default class GameBoard {
     }
 
     private _initBoard() {
+        this.tileSet.setGrid(this.gameArea);
         for (let row = 0; row < this.numRows; row++) {
             for (let col = 0; col < this.numCols; col++) {
 
@@ -35,6 +36,7 @@ export default class GameBoard {
                 this.gameArea.attach(button, col, row, 1, 1);
 
                 this.tileSet.setObject(button, col, row);
+
             }
         }
     }

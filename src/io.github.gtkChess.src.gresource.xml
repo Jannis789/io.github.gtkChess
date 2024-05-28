@@ -5,7 +5,7 @@
     <file>window.js</file>
     <file>ChessGame.js</file>
     <file>GameBoard.js</file>
-    <file>Pieces.js</file>
+    <file>TileSet.js</file>
     <file>DragControl.js</file>
   </gresource>
 </gresources>

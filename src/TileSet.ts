@@ -1,7 +1,7 @@
 import Gtk from "gi://Gtk?version=4.0";
 import GdkPixbuf from "gi://GdkPixbuf";
 import DragControl from "./DragControl.js";
-import GameBoard from "./GameBoard.js";
+
 const pieceNames: readonly PieceType[] = [
     "king",
     "queen",
@@ -21,10 +21,8 @@ const outerPieceOrder: readonly PieceType[] = [
     "rook"
 ] as const;
 
-// Definieren von PieceType als Union-Typ der Zeichenfolgen
 type PieceType = "king" | "queen" | "rook" | "knight" | "bishop" | "pawn";
 
-// Definieren des Color-Typs als Union-Typ
 type Color = "black" | "white";
 
 type Piece = {
@@ -49,6 +47,7 @@ export default class TileSet {
     private tileMap: WeakMap<Position, Tile>;
     private pieces: Piece[] = [];
     private dragControl: DragControl;
+    private grid!: Gtk.Grid;
 
     constructor() {
         this.pieceIconMap = new WeakMap<Piece, Gtk.Image>();
@@ -62,32 +61,32 @@ export default class TileSet {
             const blackPiece: Piece = {
                 color: "black",
                 type: pieceType,
-                icon: this.getImage("black", pieceType)
+                icon: this.renderImage("black", pieceType, 200)
             };
             const whitePiece: Piece = {
                 color: "white",
                 type: pieceType,
-                icon: this.getImage("white", pieceType)
+                icon: this.renderImage("white", pieceType, 200)
             };
             this.pieceIconMap.set(blackPiece, blackPiece.icon!);
             this.pieceIconMap.set(whitePiece, whitePiece.icon!);
         }
     }
 
-    private getImage(color: string, pieceType: string): Gtk.Image {
+    public renderImage(color: string, pieceType: string, size: number): Gtk.Image {
         const imgPath = `/io/github/gtkChess/img/${color}_${pieceType}.svg`;
         const image: Gtk.Image = new Gtk.Image();
         const pixbuf: GdkPixbuf.Pixbuf = GdkPixbuf.Pixbuf.new_from_resource_at_scale(
             imgPath,
-            200,
-            200,
+            size,
+            size,
             true
         );
         image.set_from_pixbuf(pixbuf);
         return image;
     }
 
-    createPiece({ x, y }: Position): Piece | null {
+    private createPiece({ x, y }: Position): Piece | null {
         const color: Color | null = y < 2 ? "black" : y > 5 ? "white" : null;
 
         if (color === null) return null;
@@ -101,12 +100,12 @@ export default class TileSet {
 
         if (pieceType === null) return null;
 
-        const icon = this.getImage(color, pieceType);
+        const icon = this.renderImage(color, pieceType, 200);
 
         return { type: pieceType, color: color, icon: icon };
     }
 
-    setObject(button: Gtk.Button, col: number, row: number): void {
+    public setObject(button: Gtk.Button, col: number, row: number): void {
         const position: Position = { x: col, y: row };
         const piece = this.createPiece(position);
         const tile: Tile = { position: position, object: button };
@@ -116,16 +115,27 @@ export default class TileSet {
             this.pieces.push(tile.piece);
             button.set_child(tile.piece.icon);
 
-            this.dragControl.setDragSource(tile.object, tile.piece.icon);
+            this.dragControl.setDragSource(tile.object, tile.piece.icon, tile.piece.color, tile.piece.type);
         }
         this.dragControl.setDropSource(tile.object);
 
         this.tileMap.set(position, tile);
     }
 
-    handleCurrentDropAction(
+    public setGrid(grid: Gtk.Grid) {
+        this.grid = grid;
+    }
+
+    public handleCurrentDropAction(
         sourceWidget: Gtk.Button,
         targetWidget: Gtk.Button
-    ) {}
+    ) {
+        const sourceWidgetQuery = this.grid.query_child(sourceWidget);
+        const sourceWidgetPosition: Position = {x: sourceWidgetQuery[0], y: sourceWidgetQuery[1]};
+
+        const targetWidgetQuery = this.grid.query_child(targetWidget);
+        const targetWidgetPosition: Position = {x: targetWidgetQuery[0], y: targetWidgetQuery[1]};
+
+    }
 }
 
