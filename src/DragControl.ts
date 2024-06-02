@@ -42,13 +42,13 @@ class DragControl {
         if (!piece) return;
         const size = Math.floor(piece.get_width() * 1.15); // +15%
         const imgCenter = size / 2;
-        piece.set_visible(false);
-        const icon = piece.renderPiece(piece.color, piece.pieceType, size);
+        // piece.set_visible(false);
+        const icon = piece.renderPiece(piece.color!, piece.pieceType!, size);
         drag.set_hotspot(-imgCenter + 8, -imgCenter + 2);
         source.set_icon(icon.get_paintable(), 0, 0);
         if (this.pieceControl) {
-            this.pieceControl.updateGameState = 'SELECT';
             this.pieceControl.dragSource = dragSourceTile;
+            this.pieceControl.updateGameState = 'SELECT';
         } else {
             throw Error;
         }
@@ -71,8 +71,8 @@ class DragControl {
 
     private handleDrop(dropDestination: Tile) {
         if (this.pieceControl) {
-            this.pieceControl.updateGameState = 'VALIDATE';
             this.pieceControl.dropDestination = dropDestination;
+            this.pieceControl.updateGameState = 'VALIDATE';
         } else {
             throw Error;
         }

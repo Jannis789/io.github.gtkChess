@@ -24,8 +24,8 @@ class GameBoard extends Gtk.Grid {
         this.pieceTiles = [];
         GObject.registerClass({ GTypeName: `TileButton`, }, Tile);
         GObject.registerClass({ GTypeName: `PieceIcon`, }, Piece);
-        this.initializeBoard();
         this.pieceControl = new PieceControl();
+        this.initializeBoard();
         this.pieceControl.tiles = this.tiles;
         this.pieceControl.pieceTiles = this.pieceTiles;
         this.pieceControl.updateGameState = 'INIT';
@@ -78,11 +78,7 @@ class GameBoard extends Gtk.Grid {
                 ? "pawn"
                 : null;
         if (!pieceType) return;
-
-        const icon: Piece = new Piece();
-        icon.renderPiece(color, pieceType, 200);
-
-        tile.set_child(icon);
+        this.pieceControl.createPiece(tile, color, pieceType);
 
         this.pieceTiles.push(tile);
     }

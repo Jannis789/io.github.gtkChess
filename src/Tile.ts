@@ -29,13 +29,19 @@ class Tile extends Gtk.Button {
     }
 
     get position(): {x: number | undefined, y: number | undefined} {
-        return {x: this.column, y: this.column};
+        return {x: this.column, y: this.row};
     }
 
     get piece(): Piece | null {
         const child = this.get_child();
         if (child instanceof Piece) return child;
         return null;
+    }
+
+    get grid(): Gtk.Grid | undefined {
+        const parent = this.get_parent();
+        if (parent instanceof Gtk.Grid) return parent;
+        return undefined;
     }
 }
 
