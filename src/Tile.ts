@@ -1,6 +1,10 @@
 import Gtk from 'gi://Gtk?version=4.0';
 import Piece from './Piece.js';
 
+type Color = "black" | "white";
+type PieceType = "king" | "queen" | "bishop" | "knight" | "rook" | "pawn";
+type Direction = "top" | "bottom" | "right" | "left" | "top-right" | "top-left" | "bottom-right" | "bottom-left";
+
 class Tile extends Gtk.Button {
     private styleContext!: Gtk.StyleContext;
 
@@ -43,6 +47,47 @@ class Tile extends Gtk.Button {
         if (parent instanceof Gtk.Grid) return parent;
         return undefined;
     }
+
+    set piece(piece: Piece) {
+        this.set_child(piece);
+    }
+
+    isOccupiedBy(color: Color | null, pieceType: typeof Piece): boolean {
+        if (this.piece === null) return false;
+        if ((this.piece.color === color || color === null) && this.piece instanceof pieceType) {
+            return true;
+        }
+        return false;
+    }
+
+    getNewPosition(playerPerspective: Color, dir: Direction): null | { x: number, y: number } {
+        if (this.row === undefined || this.column === undefined) return null;
+
+        const [x,y] = [this.column, this.row];
+        const num = playerPerspective === "white" ? 1 : -1;
+
+        const directionMap: Record<Direction, { x: number, y: number }> = {
+            "top": { x: 0, y: -1 },
+            "bottom": { x: 0, y: 1 },
+            "right": { x: 1, y: 0 },
+            "left": { x: -1, y: 0 },
+            "top-right": { x: 1, y: -1 },
+            "top-left": { x: -1, y: -1 },
+            "bottom-right": { x: 1, y: 1 },
+            "bottom-left": { x: -1, y: 1 }
+        } as const;
+
+        const delta = directionMap[dir];
+        if (!delta) return null;
+
+        const newX = x + delta.x * num;
+        const newY = y + delta.y * num;
+
+        if (newX < 0 || newX > 7 || newY < 0 || newY > 7) return null;
+
+        return { x: newX, y: newY };
+    }
+
 }
 
 export default Tile;

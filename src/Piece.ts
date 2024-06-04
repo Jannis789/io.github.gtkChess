@@ -8,12 +8,12 @@ type PieceType = "king" | "queen" | "bishop" | "knight" | "rook" | "pawn";
 class Piece extends Gtk.Image {
     public color?: Color;
     public pieceType?: PieceType;
-    public tileReference: Tile;
     public isAttackable?: boolean;
-    constructor(tile: Tile) {
+
+    constructor() {
         super();
-        this.tileReference = tile;
     }
+
     public renderPiece(
         color: Color,
         pieceType: PieceType,
@@ -32,19 +32,22 @@ class Piece extends Gtk.Image {
         this.set_from_pixbuf(pixbuf);
         return this;
     }
+
     public set_position(position: {
         x: number | undefined;
         y: number | undefined;
     }): typeof this | null {
         if (
+            this.parentTile === null ||
             position.x === undefined ||
             position.y === undefined ||
-            this.tileReference.grid === undefined ||
+            this.parentTile.grid === undefined ||
             this.color === undefined ||
             this.pieceType === undefined
+
         )
             return null;
-        const targetTile = this.tileReference.grid.get_child_at(
+        const targetTile = this.parentTile.grid.get_child_at(
             position.x,
             position.y
         );
@@ -55,11 +58,21 @@ class Piece extends Gtk.Image {
         );
         newPiece.renderPiece(this.color, this.pieceType, 200);
 
-        this.tileReference.set_child(null);
-        targetTile.set_child(newPiece);
+        this.parentTile.set_child(null);
+        targetTile.piece = newPiece;
 
         return newPiece;
     }
+
+    get parentTile(): Tile | null {
+        const tile = this.get_parent();
+        if (tile instanceof Tile) {
+            return tile;
+        }
+        return null;
+    }
+
+
 }
 
 export default Piece;

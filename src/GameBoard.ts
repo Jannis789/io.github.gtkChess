@@ -69,7 +69,7 @@ class GameBoard extends Gtk.Grid {
         const color: Color | null = y < 2 ? "black" : y > 5 ? "white" : null;
         if (!color) return;
 
-        const outerPieceOrder: readonly PieceType[] = ["rook","knight","bishop","queen","king","bishop","knight","rook"];
+        const outerPieceOrder: PieceType[] = ["rook","knight","bishop","queen","king","bishop","knight","rook"] as const;
 
         const pieceType: PieceType | null =
             y === 0 || y === 7

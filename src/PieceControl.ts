@@ -41,73 +41,61 @@ class PieceControl {
 
     public validateInput(tile: Tile) {
         if (tile.piece === null) return;
-        if (tile.piece instanceof Pawn) {
-            const newPiece = tile.piece.set_position({ x: 0, y: 0 });
-        }
+        (console as any).log(tile.getNewPosition("white", "top-right"));
     }
 
     get gameState(): GameState {
         return this._gameState;
     }
 
-    private readonly pieceTypeToClassMap: { [key: string]: typeof Piece } = {
+    private pieceTypeToClassMap: { [key: string]: typeof Piece } = {
         pawn: Pawn,
         king: King,
         queen: Queen,
         rook: Rook,
         knight: Knight,
         bishop: Bishop
-    };
+    } as const;
 
     public createPiece(tile: Tile, color: Color, pieceType: PieceType): void {
-        const pieceClass = this.pieceTypeToClassMap[pieceType];
-        if (pieceClass) {
-            const piece = new pieceClass(tile);
-            piece.renderPiece(color, pieceType, 200);
-            tile.set_child(piece);
-        }
+        tile.piece = new this.pieceTypeToClassMap[pieceType]().renderPiece(color, pieceType, 200);
     }
 }
 
-export class Pawn extends Piece {
-    constructor(tile: Tile) {
-        super(tile);
-        this.tileReference = tile;
+class Pawn extends Piece {
+    constructor() {
+        super();
+
     }
 }
 
 class King extends Piece {
-    constructor(tile: Tile) {
-        super(tile);
-        this.tileReference = tile;
+    constructor() {
+        super();
     }
 }
 
 class Queen extends Piece {
-    constructor(tile: Tile) {
-        super(tile);
-        this.tileReference = tile;
+    constructor() {
+        super();
     }
 }
 
 class Rook extends Piece {
-    constructor(tile: Tile) {
-        super(tile);
-        this.tileReference = tile;
+    constructor() {
+        super();
     }
 }
 
 class Knight extends Piece {
-    constructor(tile: Tile) {
-        super(tile);
-        this.tileReference = tile;
+    constructor() {
+        super();
     }
 }
 
 class Bishop extends Piece {
-    constructor(tile: Tile) {
-        super(tile);
-        this.tileReference = tile;
+    constructor() {
+        super();
     }
 }
 
