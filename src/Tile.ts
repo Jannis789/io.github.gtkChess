@@ -65,7 +65,7 @@ class Tile extends Gtk.Button {
             this.column === undefined ) 
             return null;
 
-        const [x,y] = [this.row, this.column];
+        const [x,y] = [this.column, this.row];
         const num = playerPerspective === "white" ? 1 : -1;
 
         const directionMap: Record<Direction, { x: number, y: number }> = {
