@@ -62,14 +62,13 @@ class GameBoard extends Gtk.Grid {
 
     private setPiece(tile: Tile): void {
         if (tile === undefined) return;
-        const x = tile.column;
-        const y = tile.row;
+        const {x, y} = tile.position;
         if (x === undefined || y === undefined) return;
 
         const color: Color | null = y < 2 ? "black" : y > 5 ? "white" : null;
         if (!color) return;
 
-        const outerPieceOrder: PieceType[] = ["rook","knight","bishop","queen","king","bishop","knight","rook"] as const;
+        const outerPieceOrder: PieceType[] = ["rook","knight","bishop","queen","king","bishop","knight","rook"];
 
         const pieceType: PieceType | null =
             y === 0 || y === 7

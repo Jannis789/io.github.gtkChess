@@ -61,9 +61,11 @@ class Tile extends Gtk.Button {
     }
 
     getNewPosition(playerPerspective: Color, dir: Direction): null | { x: number, y: number } {
-        if (this.row === undefined || this.column === undefined) return null;
+        if (this.row === undefined || 
+            this.column === undefined ) 
+            return null;
 
-        const [x,y] = [this.column, this.row];
+        const [x,y] = [this.row, this.column];
         const num = playerPerspective === "white" ? 1 : -1;
 
         const directionMap: Record<Direction, { x: number, y: number }> = {
