@@ -5,8 +5,13 @@
     <file>window.js</file>
     <file>GameBoard.js</file>
     <file>DragControl.js</file>
-    <file>PieceControl.js</file>
+    <file>PieceFactory.js</file>
     <file>Tile.js</file>
     <file>Piece.js</file>
+    <file>TileSet.js</file>
+    <file>GameInitializer.js</file>
+    <file>DragSource.js</file>
+    <file>DropTarget.js</file>
+    <file>GameAction.js</file>
   </gresource>
 </gresources>

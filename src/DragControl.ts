@@ -1,83 +1,64 @@
-import Gtk from 'gi://Gtk?version=4.0';
-import Gdk from 'gi://Gdk?version=4.0';
-import GObject from 'gi://GObject';
 import Tile from './Tile.js';
-import PieceControl from './PieceControl.js';
+import Piece from './Piece.js';
+import DragSource from './DragSource.js';
+import DropTarget from './DropTarget.js';
+import GObject from 'gi://GObject';
+import TileSet, { pieceTile } from './TileSet.js';
 
 class DragControl {
-    private dragSourceTiles!: Tile[];
-    private dropSourceTiles!: Tile[];
-    public pieceControl!: PieceControl
+    private static _instance: DragControl;
+    private readonly _dragSources: pieceTile[] = [];
+    private readonly _dropTargets: Tile[] = [];
 
-    constructor(dragSourceTiles: Tile[], dropSourceTiles: Tile[]) {
-        this.dragSourceTiles = dragSourceTiles;
-        this.dropSourceTiles = dropSourceTiles;
-        this.setDragSources();
-        this.setDropSources();
+    public static get instance(): DragControl {
+        return DragControl._instance || (DragControl._instance = new DragControl());
     }
 
-    private setDragSources() {
-        for (const dragSourceTile of this.dragSourceTiles) {
-            const dragSource = new Gtk.DragSource({
-                actions: Gdk.DragAction.MOVE
-            });
-
-            dragSourceTile.add_controller(dragSource);
-
-            dragSource.connect("prepare", () => this.prepareDrag(dragSourceTile));
-            dragSource.connect("drag-begin", (source: Gtk.DragSource, drag: Gdk.Drag) => this.beginDrag(source, dragSourceTile, drag));
-        }
+    private constructor() {
+        GObject.registerClass({ GTypeName: 'DragSource' }, DragSource);
+        GObject.registerClass({ GTypeName: 'DropTarget' }, DropTarget);
     }
 
-    private prepareDrag(dragSourceTile: Tile) {
-        const value = new GObject.Value({} as GObject.Value);
-        value.init(Gtk.Button.$gtype);
-        value.set_object(dragSourceTile);
-
-        return Gdk.ContentProvider.new_for_value(value);
+    public static removeDragSource(tile: pieceTile): void {    
+        TileSet.instance.tileDragSourceMap.get(tile)?.disconnectAll();
+        TileSet.instance.tileDragSourceMap.delete(tile);
+        DragControl.instance._dragSources.splice(DragControl.instance._dragSources.indexOf(tile), 1);
     }
 
-    private beginDrag(source: Gtk.DragSource, dragSourceTile: Tile, drag: Gdk.Drag) {
-        const piece = dragSourceTile.piece;
-        if (!piece) return;
-        const size = Math.floor(piece.get_width() * 1.15); // +15%
-        const imgCenter = size / 2;
-        // piece.set_visible(false);
-        const icon = piece.renderPiece(piece.color!, piece.pieceType!, size);
-        drag.set_hotspot(-imgCenter + 8, -imgCenter + 2);
-        source.set_icon(icon.get_paintable(), 0, 0);
-        if (this.pieceControl) {
-            this.pieceControl.dragSource = dragSourceTile;
-            this.pieceControl.updateGameState = 'SELECT';
-        } else {
-            throw Error;
-        }
+    public static removeDropTarget(tile: Tile): void {
+        TileSet.instance.tileDropTargetMap.get(tile)?.disconnectAll();
+        TileSet.instance.tileDropTargetMap.delete(tile);
+        DragControl.instance._dropTargets.splice(DragControl.instance._dropTargets.indexOf(tile), 1);
     }
 
-    private setDropSources() {
-        for (const dropDestination of this.dropSourceTiles) {
-            const dropTarget = Gtk.DropTarget.new(
-                Gtk.Button.$gtype,
-                Gdk.DragAction.MOVE
-            );
-            const dropController = Gtk.DropControllerMotion.new();
-            dropDestination.add_controller(dropTarget);
-            dropDestination.add_controller(dropController);
-
-            dropTarget.connect('drop', () =>
-                this.handleDrop(dropDestination));
-        }
+    public static set newDragSource(tile: Tile & { piece: Piece }) {
+        (console as any).log(tile);
+        DragControl.instance._dragSources.push(tile);
+        DragSource.createDragSource(tile);
     }
 
-    private handleDrop(dropDestination: Tile) {
-        if (this.pieceControl) {
-            this.pieceControl.dropDestination = dropDestination;
-            this.pieceControl.updateGameState = 'VALIDATE';
-        } else {
-            throw Error;
-        }
+    public static set newDropTarget(tile: Tile) {
+        DragControl.instance._dropTargets.push(tile);
+        DropTarget.createDropTarget(tile);
+    }
+
+    public static set dragSources(dragSources: pieceTile[]) {
+        DragControl.instance._dragSources.splice(0, DragControl.instance._dragSources.length, ...dragSources);
+        DragSource.createDragSources(dragSources);
+    }
+
+    public static get dragSources(): pieceTile[] {
+        return DragControl.instance._dragSources;
+    }
+
+    public static set dropTargets(dropTargets: TileSet) {
+        DragControl.instance._dropTargets.splice(0, DragControl.instance._dropTargets.length, ...dropTargets);
+        DropTarget.createDropTargets(dropTargets);
+    }
+
+    public static get dropTargets(): Tile[] {
+        return DragControl.instance._dropTargets;
     }
 }
 
 export default DragControl;
-

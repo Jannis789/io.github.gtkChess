@@ -1,28 +1,26 @@
-import Gtk from "gi://Gtk?version=4.0";
-import GdkPixbuf from "gi://GdkPixbuf";
-import Tile from "./Tile.js";
+import Gtk from 'gi://Gtk?version=4.0';
+import GdkPixbuf from 'gi://GdkPixbuf';
+import TileSet, { pieceTile } from './TileSet.js';
 
-type Color = "black" | "white";
-type PieceType = "king" | "queen" | "bishop" | "knight" | "rook" | "pawn";
+abstract class Piece extends Gtk.Image {
+    public color: 'black' | 'white';
+    public perspective: 'player' | 'enemy';
+    public enemyPerspective: 'player' | 'enemy';
+    public enemyColor: 'white' | 'black';
 
-class Piece extends Gtk.Image {
-    public color?: Color;
-    public pieceType?: PieceType;
-    public isAttackable?: boolean;
-
-    constructor() {
+    public constructor(color: 'black' | 'white') {
         super();
+        this.set_vexpand(true);
+        this.set_hexpand(true);
+        this.color = color;
+
+        this.perspective = this.color === 'white' ? 'player' : 'enemy';
+        this.enemyPerspective = this.color === 'white' ? 'enemy' : 'player';
+        this.enemyColor = this.color === 'white' ? 'black' : 'white';
     }
 
-    public renderPiece(
-        color: Color,
-        pieceType: PieceType,
-        size: number
-    ): Piece {
-        this.color = color;
-        this.pieceType = pieceType;
-
-        const imgPath = `/io/github/gtkChess/img/${color}_${pieceType}.svg`;
+    public renderPiece(color: 'black' | 'white', size: number ): Piece {     
+        const imgPath = `/io/github/gtkChess/img/${color}_${this.pieceType}.svg`;
         const pixbuf: GdkPixbuf.Pixbuf = GdkPixbuf.Pixbuf.new_from_resource_at_scale(
             imgPath,
             size,
@@ -33,46 +31,39 @@ class Piece extends Gtk.Image {
         return this;
     }
 
-    public set_position(position: {
-        x: number | undefined;
-        y: number | undefined;
-    }): typeof this | null {
-        if (
-            this.parentTile === null ||
-            position.x === undefined ||
-            position.y === undefined ||
-            this.parentTile.grid === undefined ||
-            this.color === undefined ||
-            this.pieceType === undefined
-
-        )
-            return null;
-        const targetTile = this.parentTile.grid.get_child_at(
-            position.x,
-            position.y
-        );
-        if (!(targetTile instanceof Tile)) return null;
-
-        const newPiece = new (this.constructor as new (tile: Tile) => this)(
-            targetTile
-        );
-        newPiece.renderPiece(this.color, this.pieceType, 200);
-
-        this.parentTile.set_child(null);
-        targetTile.piece = newPiece;
-
-        return newPiece;
+    public get pieceType(): string {
+        return this.constructor.name.toLowerCase();
     }
 
-    get parentTile(): Tile | null {
-        const tile = this.get_parent();
-        if (tile instanceof Tile) {
-            return tile;
+    public set position({ x, y }: { x: number, y: number }) {
+        const newPiece = new (this.constructor as { new (color: 'black' | 'white'): Piece })(this.color).renderPiece(this.color, 200);
+        
+        const currentTile = TileSet.getTile(this);
+        if (currentTile.piece !== null) {
+
+            TileSet.pieceTiles.splice(TileSet.pieceTiles.indexOf(this as unknown as pieceTile), 1);
+            TileSet.instance.pieceTileMap.delete(currentTile.piece);
+
+            currentTile.piece = null;
+
         }
-        return null;
+
+        TileSet.getTile({x, y}).piece = newPiece;   
     }
+    
+    abstract get possibleMoves(): { x: number, y: number }[];
 
-
+    selectMoves(state: boolean): void {
+        if (state) {
+            this.possibleMoves.forEach(targetPosition => {
+                TileSet.getTile(targetPosition).highlight = true;
+            });
+        } else {
+            this.possibleMoves.forEach(targetPosition => {
+                TileSet.getTile(targetPosition).highlight = false;
+            });
+        }
+    }
 }
 
 export default Piece;

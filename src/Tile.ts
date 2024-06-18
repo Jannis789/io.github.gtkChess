@@ -1,95 +1,100 @@
 import Gtk from 'gi://Gtk?version=4.0';
+import GameBoard from './GameBoard.js';
 import Piece from './Piece.js';
+import TileSet, { pieceTile } from './TileSet.js';
 
-type Color = "black" | "white";
-type PieceType = "king" | "queen" | "bishop" | "knight" | "rook" | "pawn";
-type Direction = "top" | "bottom" | "right" | "left" | "top-right" | "top-left" | "bottom-right" | "bottom-left";
 
 class Tile extends Gtk.Button {
-    private styleContext!: Gtk.StyleContext;
-
-    _init(): void {
-        super._init({
-            vexpand: true,
-            hexpand: true,
-        });
-        this.styleContext = this.get_style_context();
+    private _piece: Piece | null = null;
+    private _cssProvider?: Gtk.CssProvider;
+    public constructor() {
+        super();
+        this.set_vexpand(true);
+        this.set_hexpand(true);
     }
 
-    add_css_provider(css_provider: Gtk.CssProvider): void {
-        this.styleContext.add_provider(css_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER)
-    }
-
-    get column(): number | undefined {
+    public get gameBoard(): GameBoard {
         const parent = this.get_parent();
-        if (parent instanceof Gtk.Grid) return parent.query_child(this)[0];
-        return undefined;
+        if (parent instanceof GameBoard) return parent;
+        throw Error (`parent of ${this.constructor.name} is not an Instance of GameBoard`);
     }
 
-    get row(): number | undefined {
-        const parent = this.get_parent();
-        if (parent instanceof Gtk.Grid) return parent.query_child(this)[1];
-        return undefined;
+    public get position(): { x: number, y: number } {
+        return { x: this.column, y: this.row };
     }
 
-    get position(): {x: number | undefined, y: number | undefined} {
-        return {x: this.column, y: this.row};
+    public get column(): number {
+        return this.gameBoard.query_child(this)[0];
     }
 
-    get piece(): Piece | null {
-        const child = this.get_child();
-        if (child instanceof Piece) return child;
-        return null;
+    public get row(): number {
+        return this.gameBoard.query_child(this)[1];
     }
 
-    get grid(): Gtk.Grid | undefined {
-        const parent = this.get_parent();
-        if (parent instanceof Gtk.Grid) return parent;
-        return undefined;
+    public colorize(class_name: string, cssProvider: Gtk.CssProvider): void {
+        this._cssProvider = cssProvider;
+        this.add_css_class(class_name);
+        this.get_style_context().add_provider(cssProvider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
     }
 
-    set piece(piece: Piece) {
+    getNewPosition(perspective: 'player' | 'enemy', dir: string, steps: number): { x: number, y: number } | null {
+        if (steps < 0) throw Error(`Only positive steps allowed, got ${steps} steps`);
+        
+        const [preDx, preDy] = {
+            "down": [0, steps],
+            "up": [0, -steps],
+            "left": [-steps, 0],
+            "right": [steps, 0],
+            "up-left": [-steps, -steps],
+            "up-right": [steps, -steps],
+            "down-left": [-steps, steps],
+            "down-right": [steps, steps],
+        }[dir] as [number, number];
+        
+        const dx = perspective === 'enemy' ? -preDx : preDx;
+        const dy = perspective === 'enemy' ? -preDy : preDy;
+        
+        const [x, y] = [this.column + dx, this.row + dy];
+        
+        return x >= 0 && x <= 7 && y >= 0 && y <= 7 ? { x, y } : null;
+    }
+
+    public set piece(piece: Piece | null) {
+        this._piece = piece;
+        if (piece === null) {
+            this.set_child(null);
+            return;
+        }
+        
+        TileSet.instance.pieceTileMap.set(piece, this);
+        TileSet.pieceTiles.push(this as pieceTile);
         this.set_child(piece);
     }
 
-    isOccupiedBy(color: Color | null, pieceType: typeof Piece): boolean {
-        if (this.piece === null) return false;
-        if ((this.piece.color === color || color === null) && this.piece instanceof pieceType) {
-            return true;
+    public get piece(): Piece | null {
+        return this._piece;
+    }
+
+    public hasPiece(): this is pieceTile {
+        return this.piece !== null;
+    }
+
+    public isOccupiedBy(color: 'black' | 'white' | null, pieceType: typeof Piece): boolean {
+        if (!this.hasPiece()) return false;
+        if (this.piece.color === color || color === null) {
+            if (this.piece instanceof pieceType) return true;
         }
         return false;
     }
-
-    getNewPosition(playerPerspective: Color, dir: Direction): null | { x: number, y: number } {
-        if (this.row === undefined || 
-            this.column === undefined ) 
-            return null;
-
-        const [x,y] = [this.column, this.row];
-        const num = playerPerspective === "white" ? 1 : -1;
-
-        const directionMap: Record<Direction, { x: number, y: number }> = {
-            "top": { x: 0, y: -1 },
-            "bottom": { x: 0, y: 1 },
-            "right": { x: 1, y: 0 },
-            "left": { x: -1, y: 0 },
-            "top-right": { x: 1, y: -1 },
-            "top-left": { x: -1, y: -1 },
-            "bottom-right": { x: 1, y: 1 },
-            "bottom-left": { x: -1, y: 1 }
-        } as const;
-
-        const delta = directionMap[dir];
-        if (!delta) return null;
-
-        const newX = x + delta.x * num;
-        const newY = y + delta.y * num;
-
-        if (newX < 0 || newX > 7 || newY < 0 || newY > 7) return null;
-
-        return { x: newX, y: newY };
+    public set highlight(state: boolean) {
+        if (!this._cssProvider) throw Error("cssProvider not defined");
+        if (state) {
+            this.colorize('highlighted_tile', this._cssProvider);
+            TileSet.selectedTiles.push(this);
+        } else {
+            this.remove_css_class('highlighted_tile');
+        }
     }
-
 }
 
 export default Tile;

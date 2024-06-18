@@ -24,18 +24,6 @@ import { Window } from './window.js';
 export class Application extends Adw.Application {
     private window?: Window;
 
-    /**
-     * When subclassing a GObject, we need to register the class with the
-     * GObject type system. We do this here in the static initializer block,
-     * as it needs to be run before everything else.
-     *
-     * For more information on subclassing and the abilities of
-     * `GObject.registerClass()`, see https://gjs.guide/guides/gobject/subclassing.html
-     */
-    static {
-        GObject.registerClass(this);
-    }
-
     constructor() {
         super({
             application_id: 'io.github.gtkChess',
@@ -75,7 +63,7 @@ export class Application extends Adw.Application {
                 transient_for: this.active_window,
                 application_name: _('GtkChess'),
                 application_icon: 'io.github.gtkChess',
-                developer_name: '',
+                developer_name: 'Jannis',
                 version: '0.1',
                 developers: [' <>'],
                 copyright: '© 2023 ',
@@ -87,6 +75,18 @@ export class Application extends Adw.Application {
         this.add_action(show_about_action);
 
         Gio._promisify(Gtk.UriLauncher.prototype, 'launch', 'launch_finish');
+    }
+
+    /**
+     * When subclassing a GObject, we need to register the class with the
+     * GObject type system. We do this here in the static initializer block,
+     * as it needs to be run before everything else.
+     *
+     * For more information on subclassing and the abilities of
+     * `GObject.registerClass()`, see https://gjs.guide/guides/gobject/subclassing.html
+     */
+    static {
+        GObject.registerClass(this);
     }
 
     // When overriding virtual functions, the function name must be `vfunc_$funcname`.

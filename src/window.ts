@@ -1,12 +1,23 @@
 import Adw from 'gi://Adw';
 import GObject from 'gi://GObject';
 import Gtk from 'gi://Gtk?version=4.0';
-import GameBoard from './GameBoard.js';
+import GameInitializer from './GameInitializer.js';
 
 class Window extends Adw.ApplicationWindow {
-    private cssProvider!: Gtk.CssProvider;
     private _outerBox!: Gtk.Box;
-    private gameBoard!: GameBoard;
+    private cssProvider!: Gtk.CssProvider;
+
+    constructor(params?: Partial<Adw.ApplicationWindow.ConstructorProperties>) {
+        super(params);
+        this.cssProvider = new Gtk.CssProvider();
+        this.cssProvider.load_from_resource("/io/github/gtkChess/styles.css");
+        const outerBoxContext = this._outerBox.get_style_context();
+        outerBoxContext.add_class('outerBox')
+        outerBoxContext.add_provider(this.cssProvider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
+        
+        GameInitializer.gameField = this._outerBox;
+        GameInitializer.start();
+    }
 
     static {
         GObject.registerClass(
@@ -24,21 +35,6 @@ class Window extends Adw.ApplicationWindow {
                 trigger: Gtk.ShortcutTrigger.parse_string('<Control>w'),
             })
         );
-    }
-
-    constructor(params?: Partial<Adw.ApplicationWindow.ConstructorProperties>) {
-        super(params);
-        this.cssProvider = new Gtk.CssProvider();
-        this.cssProvider.load_from_resource("/io/github/gtkChess/styles.css");
-        const outerBoxContext = this._outerBox.get_style_context();
-        outerBoxContext.add_class('outerBox')
-        outerBoxContext.add_provider(this.cssProvider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
-
-
-        GObject.registerClass({ GTypeName: 'GameBoard', }, GameBoard);
-        this.gameBoard = new GameBoard();
-        this._outerBox.append(this.gameBoard);
-
     }
 }
 
