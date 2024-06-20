@@ -1,6 +1,6 @@
+import Gtk from 'gi://Gtk?version=4.0';
 import Adw from 'gi://Adw';
 import GObject from 'gi://GObject';
-import Gtk from 'gi://Gtk?version=4.0';
 import GameInitializer from './GameInitializer.js';
 
 class Window extends Adw.ApplicationWindow {
@@ -12,21 +12,20 @@ class Window extends Adw.ApplicationWindow {
         this.cssProvider = new Gtk.CssProvider();
         this.cssProvider.load_from_resource("/io/github/gtkChess/styles.css");
         const outerBoxContext = this._outerBox.get_style_context();
-        outerBoxContext.add_class('outerBox')
+        outerBoxContext.add_class('outerBox');
         outerBoxContext.add_provider(this.cssProvider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
-        
-        GameInitializer.gameField = this._outerBox;
+
+        GameInitializer.instance = this._outerBox; 
         GameInitializer.start();
     }
 
-    static {
+    static { 
         GObject.registerClass(
             {
-                Template:
-                    'resource:///io/github/gtkChess/window.ui',
+                Template: 'resource:///io/github/gtkChess/window.ui',
                 InternalChildren: ['outerBox'],
-            },
-            this
+            }, 
+            Window
         );
 
         Gtk.Widget.add_shortcut(
