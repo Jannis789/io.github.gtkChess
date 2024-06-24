@@ -2,7 +2,3 @@
 	path = gi-types
 	url = https://gitlab.gnome.org/BrainBlasted/gi-typescript-definitions
 	branch = nightly
-[submodule "gi-typescript-definitions"]
-	path = gi-typescript-definitions
-	url = https://gitlab.gnome.org/BrainBlasted/gi-typescript-definitions
-	branch = nightly
