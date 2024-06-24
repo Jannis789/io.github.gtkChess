@@ -93,7 +93,7 @@ incognito_bg_color       # adw-gtk3 only: For epiphany (Gnome web gtk3 version) 
   box-shadow: inset 1000px 200px 5px 0px rgba(90, 100, 160, 0.3);
 }
 
-.highlighted_tile {
+.possible_move_tile {
   box-shadow: inset 0px 0px 65px -5px rgba(0, 255, 50, 0.35);
   transition: box-shadow 0.4s ease;
 }

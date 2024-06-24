@@ -2,11 +2,15 @@ import Gtk from 'gi://Gtk?version=4.0';
 import Tile from './Tile.js';
 import GObject from 'gi://GObject';
 
+type Position = {x: number, y: number};
+
 class GameBoard extends Gtk.Grid {
     private static _instance: GameBoard;
+    public static tiles: Tile[];
 
     public constructor() {
         super();
+        GameBoard.tiles = [];
         this.set_margin_bottom(10);
         this.set_margin_top(10);
         this.set_margin_end(10);
@@ -21,10 +25,10 @@ class GameBoard extends Gtk.Grid {
     public static createTiles(): void {
         for (let x = 0; x < 8; x++) {
             for (let y = 0; y < 8; y++) {
-                const protection = y <= 5 ? true : false;
-                const tile = new Tile(protection);
+                const tile = new Tile();
                 GameBoard.attach(tile, x, y, 1, 1);
                 GameBoard.colorizeTile(tile, x, y);
+                GameBoard.tiles.push(tile);
             }
         }
     }
@@ -56,6 +60,21 @@ class GameBoard extends Gtk.Grid {
         const tile = GameBoard.instance.get_child_at(position.x, position.y);
         if (!tile) throw new Error('Tile not found');
         return tile as Tile;
+    }
+
+    public static selectPossibleMoves(positions: Position[], value: boolean): void {
+        positions.forEach(position => {
+            const tile = GameBoard.get_child_at(position);
+            tile.selected = value;
+        })
+    }
+
+    public static switchProtection(): void {
+        GameBoard.tiles.forEach(tile => {
+            if (tile.hasPiece()) {
+                tile.protection = !tile.protection;
+            }
+        })
     }
 
     static {

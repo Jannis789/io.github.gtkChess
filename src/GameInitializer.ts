@@ -1,8 +1,6 @@
 import Gtk from 'gi://Gtk?version=4.0';
-import GObject from 'gi://GObject';
 import GameBoard from './GameBoard.js';
 import PieceFactory from './PieceFactory.js';
-import Piece from './Piece.js';
 
 
 class GameInitializer {
@@ -17,10 +15,19 @@ class GameInitializer {
         GameInitializer._instance = instance;
     }
 
-    public static start() {
+    public static start(): void {
         GameInitializer.instance.append(GameBoard.instance);
         GameBoard.createTiles();
         PieceFactory.initializePieces();
+
+        setProtection();
+        function setProtection() {
+            GameBoard.tiles.forEach(tile => {
+                tile.piece?.color === 'white' ? 
+                tile.protection = true : 
+                tile.protection = false;
+            });
+        }
     }
 }
 
