@@ -1,7 +1,8 @@
 import Gtk from 'gi://Gtk?version=4.0';
 import Adw from 'gi://Adw';
 import GObject from 'gi://GObject';
-import GameInitializer from './GameInitializer.js';
+import GameAction from './GameAction.js';
+import GameBoard from './GameBoard.js';
 
 class Window extends Adw.ApplicationWindow {
     private _outerBox!: Gtk.Box;
@@ -14,9 +15,10 @@ class Window extends Adw.ApplicationWindow {
         const outerBoxContext = this._outerBox.get_style_context();
         outerBoxContext.add_class('outerBox');
         outerBoxContext.add_provider(this.cssProvider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
+        this._outerBox.append(GameBoard.instance);
+        
+        GameAction.update(GameAction.GameState.INITIALIZE);
 
-        GameInitializer.instance = this._outerBox; 
-        GameInitializer.start();
     }
 
     static { 

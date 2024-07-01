@@ -1,94 +1,88 @@
-import Gtk from 'gi://Gtk?version=4.0';
-import GdkPixbuf from 'gi://GdkPixbuf';
-import Tile from './Tile.js';
-import GameBoard from './GameBoard.js';
 import PieceFactory from './PieceFactory.js';
-
-type Position = { x: number, y: number };
-type Color = 'white' | 'black';
-
+import Gtk from 'gi://Gtk?version=4.0';
+import Position from './Position.js';
+import GdkPixbuf from 'gi://GdkPixbuf';
+import GObject from 'gi://GObject';
+import GameBoard from './GameBoard.js';
+import { pieceTile } from './Tile.js';
 abstract class Piece extends Gtk.Image {
-    private _color: Color | undefined;
-    private _perspective: 'player' | 'enemy' | undefined;
-    public size: number;
-
-    public constructor() {
+    public size: number = 200;
+    public color: PieceFactory.Color;
+    public position: Position;
+    constructor(props: PieceFactory.pieceProps) {
         super();
-        PieceFactory.pieces.push(this);
-        this.size = 200;
-        this.set_vexpand(true);
-        this.set_hexpand(true);
+        this.color = props.color;
+        this.position = props.position;
     }
-
-    public get parent(): Tile {
-        if (this.get_parent() === null) throw new Error('Parent is null');
-        return this.get_parent() as Tile;
-    }
-
-    public get color(): Color {
-        if (this._color === undefined) throw new Error('Color is undefined');
-        return this._color;
-    }
-
-    public set color(color: Color) {
-        this.perspective = (color === 'white') ? 'player' : 'enemy';
-        this._color = color;
-    }
-
-    public get perspective(): 'player' | 'enemy' {
-        if (this._perspective === undefined) throw new Error('Perspective is undefined');
-        return this._perspective;
-    }
-
-    public set perspective(perspective: 'player' | 'enemy') {
-        this._perspective = perspective;
-    }
-
-    public static get type(): string {
-        return this.name.toLowerCase();
-    }
-
     public renderPiece(): Piece {
-        const imgPath = `/io/github/gtkChess/img/${this.color}_${this.constructor.name.toLowerCase()}.svg`;
-        const pixbuf: GdkPixbuf.Pixbuf = GdkPixbuf.Pixbuf.new_from_resource_at_scale(
-            imgPath,
+        this.set_from_pixbuf(GdkPixbuf.Pixbuf.new_from_resource_at_scale(
+            `/io/github/gtkChess/img/${this.color}_${this.constructor.name.toLowerCase()}.svg`,
             this.size,
             this.size,
             true
-        );
-        this.set_from_pixbuf(pixbuf);
+        ));
         return this;
     }
-    
-    public selectPossibleMoves(): void {
-        (console as any).log(this.possibleMoves);
+
+    public getNewImage(newSize: number): Gtk.Image {
+        const img = new Gtk.Image();
+        img.set_from_pixbuf(GdkPixbuf.Pixbuf.new_from_resource_at_scale(
+            `/io/github/gtkChess/img/${this.color}_${this.constructor.name.toLowerCase()}.svg`,
+            newSize,
+            newSize,
+            true
+        ));
+        return img;
     }
 
-    public moveToPosition(position: Position): Piece {
-        this.parent.piece = null;
-        const newPiece = GameBoard.get_child_at(position).piece = new (this.constructor as { new(): Piece})();
-        newPiece.color = this.color;
-        newPiece.renderPiece();
-        return GameBoard.get_child_at(position).piece as Piece;
-    }
+    abstract regularMoves(): Position[]
+    public validMoves(): Position[] {
+        let possibleMoves: Position[] = this.regularMoves();
+        const thisTile = GameBoard.getChild(this.position);
+        if (!this.playerKing) throw new Error('Player has no king');
+        const kingPosition = this.playerKing.position;
 
-    public get playerKing(): PieceFactory.King {
-        for (const piece of PieceFactory.pieces) {
-            if (piece.color === this.color && piece instanceof PieceFactory.King) return piece;
+        GameBoard.pieceTiles.forEach(tile => {
+            tile.protection = !tile.protection;
+        });
+
+        thisTile.ignorePiece = true;
+
+        for (const move of possibleMoves) {
+
+            const enemyPieceTiles = GameBoard.pieceTiles
+                .filter(tile => tile.piece?.color !== this.color)
+                .filter(tile => tile.piece.position.equals(move));
+                
+                const enemyAttackPositions = enemyPieceTiles
+                    .map(enemyPieceTile => enemyPieceTile.piece?.regularMoves())
+                    .flat();
+                
+                if (kingPosition.isMember(enemyAttackPositions)) {
+                    possibleMoves = possibleMoves.filter(m => m.equals(move));
+                }
+            
         }
 
-        throw new Error('Player king not found');
+        GameBoard.pieceTiles.forEach(tile => {
+            tile.protection = !tile.protection;
+        });
+        
+        thisTile.ignorePiece = true;
+        (console as any).log(possibleMoves);
+        return possibleMoves;
     }
 
-    public get enemyKing(): PieceFactory.King {
-        for (const piece of PieceFactory.pieces) {
-            if (piece.color !== this.color && piece instanceof PieceFactory.King) return piece;
-        }
-
-        throw new Error('Enemy king not found');
+    public get playerKing(): Piece | null {
+        const king = GameBoard.pieceTiles
+            .find(tile => tile.piece?.color === this.color && 
+                          tile.piece instanceof PieceFactory.King);
+        return king ? king.piece : null;
     }
 
-    abstract get possibleMoves(): Position[];
+    static {
+        GObject.registerClass(Piece as any);
+    }
 }
 
 export default Piece;

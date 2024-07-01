@@ -1,21 +1,25 @@
-import GameBoard from './GameBoard.js';
-import Piece from './Piece.js';
-import Tile from './Tile.js';
+import GameBoard from "./GameBoard.js";
+import EventControl from "./EventControl.js";
+import Tile, { pieceTile } from "./Tile.js";
+import Position from "./Position.js";
+import PieceFactory from "./PieceFactory.js";
 
-type GameState = "SELECT" | "INIT" | "VALIDATE" | "MOVE" | "WIN" | "LOSE";
-type Position = {x: number, y: number};
+enum GameState {
+    INITIALIZE = "INITIALIZE",
+    SELECT = "SELECT",
+    VALIDATE = "VALIDATE",
+    NONE = "NONE",
+    CANCEL = "CANCEL",
+}
 
 class GameAction {
+    public static selectedPosition: Position | null;
+    public static targetedPosition: Position | null;
     private static _instance: GameAction;
-    private _selectedTile: Tile | null;
-    private _targetedTile: Tile | null;
-    public static possibleMoves: Position[];
-    private _state: GameState = "INIT";
+    public static currentState: GameState;
 
-    private constructor() {
-        this._selectedTile = null;
-        this._targetedTile = null;
-        GameAction.possibleMoves = [];
+    constructor() {
+        GameAction.currentState = GameState.NONE;
     }
 
     public static get instance(): GameAction {
@@ -25,60 +29,39 @@ class GameAction {
         return GameAction._instance;
     }
 
-    public static get selectedTile(): Tile | null {
-        return this.instance._selectedTile;
-    }
-
-    public static set selectedTile(tile: Tile | null) {
-        this.instance._selectedTile = tile;
-    }
-
-    public static get targetedTile(): Tile | null {
-        return this.instance._targetedTile;
-    }
-
-    public static set targetedTile(tile: Tile | null) {
-        this.instance._targetedTile = tile;
-    }
-
-    public static get state(): GameState {
-        return this.instance._state;
+    public static get GameState(): typeof GameState {
+        return GameState;
     }
 
     public static update(state: GameState): void {
-        this.instance._state = state;
+        if (GameAction.currentState === state) return;
+        GameAction.currentState = state;
         switch (state) {
-            case "SELECT":
-                if (!this.selectedTile?.hasPiece()) throw new Error('No tile selected while SELECT state is active');
-                
-                const piece: Piece = this.selectedTile.piece;
-                GameAction.possibleMoves = piece.possibleMoves;
-                GameBoard.selectPossibleMoves(GameAction.possibleMoves, true);
-                
+            case GameState.INITIALIZE:
+                GameBoard.createTiles();
+                PieceFactory.createPieces();
+                EventControl.createEventHandling();
+                GameBoard.setProtection('white');
                 break;
-            case "VALIDATE":
-                if (!this.targetedTile) throw new Error('No tile selected while VALIDATE state is active');
-
-                const tile = this.targetedTile;
-                GameAction.possibleMoves.some(position => {
-                    return position.x === tile.position.x && position.y === tile.position.y
-                }) ? this.update("MOVE") : this.update("INIT");
-
+            case GameState.SELECT:
+                if (!GameAction.selectedPosition) throw new Error('Selected position is null, while in SELECT state');
+                const tile = GameBoard.getChild(GameAction.selectedPosition) as pieceTile;
+                tile.piece.validMoves()
+                .forEach(tilePosition => {
+                    GameBoard.selectTile(tilePosition, true);
+                });
                 break;
-            case "MOVE":
-                if (!this.selectedTile?.hasPiece()) throw new Error('selectedTile has no piece while MOVE state is active');
-                if (!this.targetedTile) throw new Error('No tile targeted while MOVE state is active');
-                
-                const sourcePiece = this.selectedTile.piece;
-                const targetPosition = this.targetedTile.position;
-                sourcePiece.moveToPosition(targetPosition);
-                
+            case GameState.VALIDATE:
+                if (!GameAction.selectedPosition) throw new Error('Selected position is null, while in VALIDATE state');
+                if (!GameAction.targetedPosition) throw new Error('Targeted position is null, while in VALIDATE state');
+                if (GameAction.targetedPosition.isMember(GameBoard.selectedTilePositions)) {
+                    GameBoard.movePieceTo(GameAction.selectedPosition, GameAction.targetedPosition);
+                }
                 break;
-            case "INIT":
-
+            case GameState.CANCEL:
                 break;
             default:
-                throw new Error(`Unknown state: ${state}`);
+                console.error("Unknown game state:", state);
         }
     }
 }

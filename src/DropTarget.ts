@@ -1,30 +1,31 @@
 import Gtk from 'gi://Gtk?version=4.0';
-import Gdk from 'gi://Gdk?version=4.0';
-import Tile from './Tile.js';
+import GObject from 'gi://GObject';
 import GameAction from './GameAction.js';
+import Tile from './Tile.js';
+import Gdk from 'gi://Gdk?version=4.0';
+
 class DropTarget extends Gtk.DropTarget {
-    private _handlerIDs: number | null;
-    private _currentTile: Tile | null;
-
-    public constructor() {
+    private _handlerID: number;
+    constructor(parent: Tile) {
         super();
-        this._handlerIDs = null;
-        this._currentTile = null;
+        
         this.set_actions(Gdk.DragAction.MOVE);
-        this.set_gtypes([Gtk.Button.$gtype]);
-    }
-
-    public setSource(tile: Tile): void {
-        this._currentTile = tile;
-        tile.add_controller(this);
-        tile.add_controller(Gtk.DropControllerMotion.new());
-        this._handlerIDs = this.connect('drop', () => this.executeDrop());
+        this.set_gtypes([Gtk.Button.$gtype]);        
+        parent.add_controller(this);
+        parent.add_controller(Gtk.DropControllerMotion.new());
+        
+        this._handlerID = this.connect('drop', () => this.executeDrop());
     }
 
     private executeDrop(): void {
-        GameAction.targetedTile = this._currentTile;
-        GameAction.update("VALIDATE");
+        const widget = this.get_widget() as Tile;
+        GameAction.targetedPosition = widget.position;
+        GameAction.update(GameAction.GameState.VALIDATE);
     } 
+
+    static {
+        GObject.registerClass(DropTarget);
+    }
 }
 
 export default DropTarget;

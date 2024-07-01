@@ -1,241 +1,206 @@
-import Piece from "./Piece.js";
+import GameBoard from './GameBoard.js';
+import Piece from './Piece.js';
+import Position from './Position.js';
 import GObject from 'gi://GObject';
-import GameBoard from "./GameBoard.js";
-
-var board: (null | string)[][] = [
-    ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'],
-    ['p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'],
-    [null, null, null, null, null, null, null, null],
-    [null, null, null, null, null, null, null, null],
-    [null, null, null, null, null, null, null, null],
-    [null, null, null, null, null, null, 'b', null],
-    [null, 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
-    ['R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R']
-];
-
-type Position = { x: number, y: number };
 
 namespace PieceFactory {
-    var searchForCheck = false;
-    export const pieces: Piece[] = [];
+    export interface pieceProps {
+        color: Color;
+        position: Position;
+    }
 
-    export function initializePieces(): void {
-        var classRecord: Record<string, new () => Piece> = {
-            r: Rook,
-            n: Knight,
-            b: Bishop,
-            q: Queen,
-            k: King,
-            p: Pawn
-        } as const;
+    export type Color = 'white' | 'black';
 
-        GObject.registerClass(Piece as any);
-        Object.values(classRecord).forEach(piece => GObject.registerClass(piece));
+    const board: (null | string)[][] = [
+        [ 'r',  'n',  'b',  'q',  'k',  'b',  'n',  'r'],
+        [ 'p',  'p',  'p',  'p',  'p',  'p',  'p',  'p'],
+        [null, null, null, null, null, null, null, null],
+        [null, null, null, null, null, null, null, null],
+        [null, null, null, null, null, null, null, null],
+        [null, null, null, null, null, null,  'b', null],
+        [ 'P',  'P',  'P',  'P',  'P',  'P',  'P',  'P'],
+        [ 'R',  'N',  'B',  'Q',  'K',  'B',  'N',  'R'],
+    ] 
 
-        board.forEach((row, yIndex) => row.forEach((letter, xIndex) => {
+    export function createPieces() {
+        const letterPieceRecord: Record<string, new (props: pieceProps) => Piece> = {
+            'r': Rook,
+            'n': Knight,
+            'b': Bishop,
+            'q': Queen,
+            'k': King,
+            'p': Pawn,
+        };
+    
+        board.forEach((row, y) => row.forEach((letter, x) => {
             if (letter === null) return;
-            const color = letter === letter.toLowerCase() ? "black" : "white";
-            const piece = new classRecord[letter.toLowerCase()]();
-            piece.color = color;
-
-            GameBoard.get_child_at({ x: xIndex, y: yIndex }).piece = piece;
+            const color: Color = letter === letter.toUpperCase() ? 'white' : 'black';
+            const PieceClass = letterPieceRecord[letter.toLowerCase()];
+            const props = { color: color, position: new Position(x, y) };
+            const piece = new PieceClass(props);
+            GameBoard.getChild(props.position).piece = piece;
+            
             piece.renderPiece();
         }));
+
     }
 
     export class Pawn extends Piece {
-        public constructor() {
-            super();
+        constructor(props: pieceProps) {
+            super(props);
         }
 
-        get possibleMoves(): Position[] {
-            const tile = this.parent;
-            const possibleMoves: Position[] = [];
-            if (!tile) throw new Error('Parent Element not found');
+        regularMoves(): Position[] {
+            const tile = GameBoard.getChild(this.position);
+            const perspective = tile.piece?.color === 'white' ? 'player' : 'enemy';
+            const regularMoves: Position[] = [];
 
-            for (const step of [1, 2]) {
-                const tileAtTargetPosition = tile.getTileOnNewPosition(this.perspective, 'up', step);
-                if (!tileAtTargetPosition || tileAtTargetPosition.protection || tileAtTargetPosition.hasPiece()) break;
-                possibleMoves.push(tileAtTargetPosition.position);
+            for (const i of [1,2]) {
+                const regularMove = tile.getNewPosition(this.position, perspective, 'down', i);
+                if (!regularMove) break;
+                const regularTile = GameBoard.getChild(regularMove);
+                if (!regularTile.protection) regularMoves.push(regularMove);
             }
 
-            ['up-left', 'up-right'].forEach(dir => {
-                const atteckedTile = tile.getTileOnNewPosition(this.perspective, dir, 1);
-                if (!atteckedTile || !atteckedTile.hasPiece() || atteckedTile.protection) return;
-                possibleMoves.push(atteckedTile.position);
-            });
-
-            return validatePossibleMoves(possibleMoves, this);
-        }
-    }
-
-    export class King extends Piece {
-        public constructor() {
-            super();
-        }
-
-        get possibleMoves(): Position[] {
-            const tile = this.parent;
-            const possibleMoves: Position[] = [];
-            ['up', 'down', 'left', 'right'].forEach(dir => {
-                const targetedTile = tile.getTileOnNewPosition(this.perspective, dir, 1);
-                if (!targetedTile || targetedTile.protection) return;
-                possibleMoves.push(targetedTile.position);
-            });
-
-            return validatePossibleMoves(possibleMoves, this);
-        }
-
-        public isInCheck(): boolean {
-            const enemyPieces = pieces.filter(piece => piece.color !== this.color);
-            const position = this.parent.position;
-
-            GameBoard.switchProtection();
-            let isInCheck = false;
-            for (const piece of enemyPieces) {
-                for (const move of piece.possibleMoves) {
-                    
-                    if (move.x === position.x && move.y === position.y) {
-                        (console as any).log(piece.constructor.name);
-                        isInCheck = true;
-                        break;
-                    }
-                }
-                if (isInCheck) break;
+            for (const str of ['up-left', 'up-right']) {
+                const attackMoves = tile.getNewPosition(this.position, perspective, str, 1);
+                if (!attackMoves) break;
+                const attackTile = GameBoard.getChild(attackMoves);
+                if (attackTile.hasPiece() && !attackTile.protection) regularMoves.push(attackMoves);
             }
+            return regularMoves;
+        }
 
-            GameBoard.switchProtection();
-
-            (console as any).log("Is Player's King in check: " + isInCheck);
-
-            return isInCheck;
+        static {
+            GObject.registerClass(Pawn);
         }
     }
 
     export class Rook extends Piece {
-        public constructor() {
-            super();
+        constructor(props: pieceProps) {
+            super(props);
+        }
+        public regularMoves(): Position[] {
+            return continuingMoves(['up', 'down', 'left', 'right'], this);
         }
 
-        get possibleMoves(): Position[] {
-            return validatePossibleMoves(
-                continuingPossibleMoves(this, ['up', 'down', 'left', 'right']), 
-                this
-            );
+        static {
+            GObject.registerClass(Rook);
         }
     }
 
     export class Knight extends Piece {
-        public constructor() {
-            super();
+
+        constructor(props: pieceProps) {
+            super(props);
         }
 
-        get possibleMoves(): Position[] {
-            const tile = this.parent;
-            const possibleMoves: Position[] = [];
-            ['up', 'down', 'left', 'right'].forEach(dir => {
-                const prePositionTile = tile.getTileOnNewPosition(this.perspective, dir, 2);
-                const postDirections = dir === 'up' || dir === 'left' ? ['right', 'left'] : ['up', 'down'];
-                postDirections.forEach(postDir => {
-                    const postPositionTile = prePositionTile?.getTileOnNewPosition(this.perspective, postDir, 1);
-                    if (!postPositionTile || postPositionTile.protection) return;
-                    possibleMoves.push(postPositionTile.position);
-                });
-            });
+        public regularMoves(): Position[] {
+            const tile = GameBoard.getChild(this.position);
+            const perspective = tile.piece?.color === 'white' ? 'player' : 'enemy';
+            const regularMoves: Position[] = [];
 
-            return validatePossibleMoves(possibleMoves, this);
+            for (const str of ['up', 'down', 'left', 'right']) {
+                const prePosition = tile.getNewPosition(this.position, perspective, str, 2);
+
+                if (!prePosition) continue;
+                if (str === 'up' || str === 'down') {
+                    for (const postDir of ['left', 'right']) {
+                        const position = tile.getNewPosition(prePosition, perspective, postDir, 1);
+                        if (!position) continue;
+                        const targetedTile = GameBoard.getChild(position);
+                        if (!targetedTile.protection) regularMoves.push(position);
+                    }
+                } else {
+                    for (const postDir of ['up', 'down']) {
+                        const position = tile.getNewPosition(prePosition, perspective, postDir, 1);
+                        if (!position) continue;
+                        const targetedTile = GameBoard.getChild(position);
+                        if (!targetedTile.protection) regularMoves.push(position);
+                    }
+                }
+            }
+            return regularMoves;
+        }
+
+        static {
+            GObject.registerClass(Knight);
         }
     }
 
     export class Bishop extends Piece {
-        public constructor() {
-            super();
+        constructor(props: pieceProps) {
+            super(props);
         }
 
-        get possibleMoves(): Position[] {
-            return validatePossibleMoves(
-                continuingPossibleMoves(this, ['up-right', 'up-left', 'down-right', 'down-left']), 
-                this
-            );
+        public regularMoves(): Position[] {
+            return continuingMoves(['up-left', 'up-right', 'down-left', 'down-right'], this);
+        }
+
+        static {
+            GObject.registerClass(Bishop);
         }
     }
 
     export class Queen extends Piece {
-        public constructor() {
-            super();
+
+        constructor(props: pieceProps) {
+            super(props);
         }
 
-        get possibleMoves(): Position[] {
-            return validatePossibleMoves(
-                continuingPossibleMoves(this, ['up', 'down', 'left', 'right', 'up-left', 'up-right', 'down-left', 'down-right']),
-                this
-            );
+        public regularMoves(): Position[] {
+            return continuingMoves(['up', 'down', 'left', 'right', 'up-left', 'up-right', 'down-left', 'down-right'], this);
         }
-    }
-
-    function validatePossibleMoves(possibleMoves: Position[], piece: Piece): Position[] {
-        if (searchForCheck) return possibleMoves;
         
-        searchForCheck = true;
-
-        piece.parent.ignorePiece = true;
-        possibleMoves = possibleMoves.filter(possibleMove => {
-            const tileOnPossiblePosition = GameBoard.get_child_at(possibleMove);
-            const hasPiece = tileOnPossiblePosition?.hasPiece();
-            tileOnPossiblePosition.protection = !tileOnPossiblePosition.protection;
-
-            if (hasPiece)
-                tileOnPossiblePosition.piece.color = piece.color;
-
-            const isValidMove = !piece.playerKing.isInCheck();
-
-            if (hasPiece)
-                tileOnPossiblePosition.piece.color = piece.color === 'white' ? 'black' : 'white';
-
-            tileOnPossiblePosition.protection = !tileOnPossiblePosition.protection;
-
-            return isValidMove;
-        });
-
-        piece.parent.ignorePiece = false;
-
-        searchForCheck = false;
-
-        return possibleMoves;
+        static {
+            GObject.registerClass(Queen);
+        }
     }
 
-    function continuingPossibleMoves(piece: Piece, directions: string[]): Position[] {
-        const tile = piece.parent;
-        const possibleMoves: Position[] = [];
-    
-        directions.forEach(dir => {
-            let steps = 1;
-            while (true) {
-                const newTile = tile.getTileOnNewPosition(piece.perspective, dir, steps);
-                if (!newTile || newTile.protection) {
-                    break;
-                }
-                possibleMoves.push(newTile.position);
-                steps++;
-                if (newTile?.hasPiece() && !newTile.ignorePiece) break;
+    export class King extends Piece {
+
+        constructor(props: pieceProps) {
+            super(props);
+        }
+
+        regularMoves() {
+            const tile = GameBoard.getChild(this.position);
+            const perspective = tile.piece?.color === 'white' ? 'player' : 'enemy';
+            const regularMoves: Position[] = [];
+        
+            for (const str of ['up', 'down', 'left', 'right', 'up-left', 'up-right', 'down-left', 'down-right']) {
+                const position = tile.getNewPosition(this.position, perspective, str, 1);
+                if (!position) continue;
+                const targetedTile = GameBoard.getChild(position);
+                if (!targetedTile.protection) regularMoves.push(position);
             }
-        });
-        return possibleMoves;
-    }
+            return regularMoves;
+        }
 
+        static {
+            GObject.registerClass(King);
+        }
+    }
 }
-    /* validatePossibleMoves()
-    searchForCheck = false
-    ignorePiece = true
-    inLoop
-        protection = false
-        hasPiece ? color = enemyColor // maybe implement a skip method, instead of changing color
-            [push]
-        hasPiece ? color = playerColor
-        protection = true
-    inLoop
-    ignorePiece = false
-    searchForCheck = true
-    */
-   
+
+function continuingMoves(dirs: string[], piece: Piece) {
+    const tile = GameBoard.getChild(piece.position);
+    const perspective = tile.piece?.color === 'white' ? 'player' : 'enemy';
+    const regularMoves: Position[] = [];
+
+    for (const str of dirs) {
+        let position: Position | null;
+        for (let step = 1;  
+             position = tile.getNewPosition(piece.position, perspective, str, step); 
+             step++) {
+
+            const tile = GameBoard.getChild(position);
+            if (!tile.protection) regularMoves.push(position);
+
+            if (tile.hasPiece()) break;
+        }
+    }
+    return regularMoves;
+}
+
 export default PieceFactory;

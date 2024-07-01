@@ -1,60 +1,57 @@
 import Gtk from 'gi://Gtk?version=4.0';
-import Gdk from 'gi://Gdk?version=4.0';
 import GObject from 'gi://GObject';
 import Tile from './Tile.js';
+import Gdk from 'gi://Gdk?version=4.0';
 import GameAction from './GameAction.js';
-import GameBoard from './GameBoard.js';
 
 class DragSource extends Gtk.DragSource {
-    private _handlerIDs: number[];
-    private _currentTile: Tile | null;
-
-    public constructor() {
+    private _handlerIds: number[];
+    public constructor(parent: Tile) {
         super({
-            actions: Gdk.DragAction.MOVE
+            actions: Gdk.DragAction.MOVE,
         });
-        this._handlerIDs = [];
-        this._currentTile = null;
-    }
-
-    public setSource(tile: Tile): void {
-        tile.add_controller(this);
-        this._handlerIDs = [
+        parent.add_controller(this);
+        
+        this._handlerIds = [
             this.connect('prepare', () => this.prepare()),
             this.connect('drag-begin', (_, drag: Gdk.Drag) => this.startDrag(drag)),
             this.connect('drag-end', () => this.endDrag())
-        ]
-        this._currentTile = tile; 
+        ];
     }
-
     private prepare(): Gdk.ContentProvider {
-        if (!this._currentTile) throw new Error('No tile associated with drag source');
+        if (!this.get_widget()) throw new Error('No tile associated with drag source');
 
         const value = new GObject.Value({} as GObject.Value);
         value.init(Gtk.Button.$gtype);
-        value.set_object(this._currentTile);
+        value.set_object(this.get_widget());
 
         return Gdk.ContentProvider.new_for_value(value);
     }
-    
-    private startDrag(drag: Gdk.Drag): void {
-        if (!this._currentTile || !this._currentTile.hasPiece()) return;
 
-        const piece = this._currentTile.piece;
+    private startDrag(drag: Gdk.Drag): void {
+        const widget = this.get_widget() as Tile;
+        if (!widget || !widget.hasPiece()) return;
+
+        const piece = widget.piece;
         const size = Math.floor(piece.get_width() * 1.15); // +15%
         const imgCenter = size / 2;
-        piece.size = size;
-        const icon = piece.renderPiece();
+        const icon = piece.getNewImage(size);
         drag.set_hotspot(-imgCenter + 8, -imgCenter + 2);
         this.set_icon(icon.get_paintable(), 0, 0);
-
-        GameAction.selectedTile = this._currentTile;
-        GameAction.update("SELECT");
+        piece.set_visible(false);
+        
+        GameAction.selectedPosition = widget.position;
+        GameAction.update(GameAction.GameState.SELECT);
     }
 
     private endDrag(): void {
-        if (GameAction.possibleMoves) 
-            GameBoard.selectPossibleMoves(GameAction.possibleMoves, false);
+        if (GameAction.currentState === GameAction.GameState.SELECT) {
+            GameAction.update(GameAction.GameState.CANCEL);
+        }
+    }
+
+    static {
+        GObject.registerClass(DragSource);
     }
 }
 
