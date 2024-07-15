@@ -12,7 +12,9 @@
     <file>GameInitializer.js</file>
     <file>DragSource.js</file>
     <file>DropTarget.js</file>
-    <file>GameAction.js</file>
+    <file>GameLoop.js</file>
     <file>Position.js</file>
+    <file>UI.js</file>
+    <file>ActionChain.js</file>
   </gresource>
 </gresources>

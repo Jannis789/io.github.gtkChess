@@ -47,28 +47,28 @@ incognito_bg_color       # adw-gtk3 only: For epiphany (Gnome web gtk3 version) 
 }
 
 .corner_tl {
-  border-top-left-radius: 10%;
+  border-top-left-radius: 10.5%;
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
   border-bottom-left-radius: 0;
 }
 
 .corner_tr {
-  border-top-right-radius: 10%;
+  border-top-right-radius: 10.5%;
   border-top-left-radius: 0;
   border-bottom-right-radius: 0;
   border-bottom-left-radius: 0;
 }
 
 .corner_bl {
-  border-bottom-left-radius: 10%;
+  border-bottom-left-radius: 10.5%;
   border-bottom-right-radius: 0;
   border-top-right-radius: 0;
   border-top-left-radius: 0;
 }
 
 .corner_br {
-  border-bottom-right-radius: 10%;
+  border-bottom-right-radius: 10.5%;
   border-bottom-left-radius: 0;
   border-top-right-radius: 0;
   border-top-left-radius: 0;
@@ -80,7 +80,7 @@ incognito_bg_color       # adw-gtk3 only: For epiphany (Gnome web gtk3 version) 
 }
 
 .dark_tile {
-  background-color: #3a3954;
+  background-color: #444466;
   transition: background-color 0.5s ease;
 }
 
@@ -90,7 +90,7 @@ incognito_bg_color       # adw-gtk3 only: For epiphany (Gnome web gtk3 version) 
 }
 
 .dark_tile:hover, .light_tile:hover {
-  box-shadow: inset 1000px 200px 5px 0px rgba(90, 100, 160, 0.3);
+  box-shadow: inset 1000px 200px 5px 0px rgba(90, 100, 160, 0.25);
 }
 
 .selected {

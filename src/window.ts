@@ -1,8 +1,8 @@
 import Gtk from 'gi://Gtk?version=4.0';
 import Adw from 'gi://Adw';
 import GObject from 'gi://GObject';
-import GameAction from './GameAction.js';
-import GameBoard from './GameBoard.js';
+import GameLoop from './GameLoop.js';
+import UI from './UI.js';
 
 class Window extends Adw.ApplicationWindow {
     private _outerBox!: Gtk.Box;
@@ -10,23 +10,26 @@ class Window extends Adw.ApplicationWindow {
 
     constructor(params?: Partial<Adw.ApplicationWindow.ConstructorProperties>) {
         super(params);
+
         this.cssProvider = new Gtk.CssProvider();
         this.cssProvider.load_from_resource("/io/github/gtkChess/styles.css");
+
         const outerBoxContext = this._outerBox.get_style_context();
+
         outerBoxContext.add_class('outerBox');
         outerBoxContext.add_provider(this.cssProvider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
-        this._outerBox.append(GameBoard.instance);
-        
-        GameAction.update(GameAction.GameState.INITIALIZE);
 
+        this._outerBox.append(UI.Board.instance);
+
+        GameLoop.updateGameState('BUILD_GAME');
     }
 
-    static { 
+    static {
         GObject.registerClass(
             {
                 Template: 'resource:///io/github/gtkChess/window.ui',
                 InternalChildren: ['outerBox'],
-            }, 
+            },
             Window
         );
 
